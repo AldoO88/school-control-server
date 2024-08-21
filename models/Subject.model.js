@@ -28,4 +28,4 @@ const SubjectSchema = new Schema({
 
 const Subject = model('Subject', SubjectSchema)
 
-module.exports = Subject;
+export default Subject;
