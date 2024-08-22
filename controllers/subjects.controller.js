@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import Subject from "../models/Subject.model";
+const mongoose = require('mongoose');
+const Subject =  require('../models/Subject.model');
 
 const getAllSubjects = async (req, res) => {
   try {
@@ -55,7 +55,7 @@ const deleteSubject = async (req, res) => {
   }
 }
 
-export default { 
+module.exports ={ 
   getAllSubjects, 
   createSubject, 
   getSubjectById, 

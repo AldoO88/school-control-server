@@ -1,4 +1,4 @@
-import { Router } from "express";
+const Router = require('express');
 
 import { 
   getAllSubjects, 
@@ -15,3 +15,5 @@ router.post('/', createSubject);
 router.get('/:idSubject', getSubjectById)
 router.put('/:idSubject', updateSubject)
 router.delete('/:idSubject', deleteSubject)
+
+module.exports = router;
