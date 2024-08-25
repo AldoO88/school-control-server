@@ -15,10 +15,10 @@ const SubjectSchema = new Schema({
       type: String
     },
     hoursWeek:{
-        type: Number
+      type: Number
     },
     maxHoursDay:{
-        type: Number
+      type: Number
     }
   },
   {
