@@ -4,9 +4,11 @@ const User = require('../models/User.model');
 
 const signupController = async (req, res, next) => {
   try {
-    const { name, lastname, profile, email, password } = req.body;
+    console.log('req.body',req.body);
+    const { name, lastname, profile, email, password, confPassword } = req.body;
+    
 
-    if(name === '' || lastname === '' || profile === '' || email === '' || password === ''){
+    if(name === '' || lastname === '' || profile === '' || email === '' || password === ''|| confPassword === ''){
       return res.status(400).json({ message: 'Todos los campos son requeridos' });
     }
 
@@ -18,6 +20,10 @@ const signupController = async (req, res, next) => {
     const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
     if(!passwordRegex.test(password)){
       return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una letra minúscula y un número' });
+    }
+
+    if(password !== confPassword){
+      return res.status(400).json({ message: 'Las contraseñas no coinciden' });
     }
 
     const user = await User.findOne({ email })
@@ -53,17 +59,18 @@ const loginController = async (req, res, next) => {
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, foundUser.password);
-    if(!isPasswordCorrect){
-      return res.status(401).json({ message: 'Contraseña incorrecta' });
+    if(isPasswordCorrect){
+      
+      const authToken = jwt.sign(
+        { _id: foundUser._id, email: foundUser.email, name: foundUser.name, lastname: foundUser.lastname, profile: foundUser.profile },
+        process.env.SECRET_KEY,
+        { algorithm: 'HS256', expiresIn: '1h' }
+      )
+      return res.status(200).json({ authToken });
     }
 
-    const authToken = jwt.sign(
-      { _id: foundUser._id, email: foundUser.email, name: foundUser.name, lastName: foundUser.lastname, profile: foundUser.profile },
-      process.env.JWT_SECRET,
-      { algorithm: 'HS256', expiresIn: '1h' }
-    )
-
-    res.status(200).json({ message: 'Inicio de sesión exitoso', token: authToken });
+    return res.status(401).json({ message: 'Contraseña incorrecta' });
+   
     
   } catch (error) {
     if(error.code === 500){

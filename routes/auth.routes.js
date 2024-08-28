@@ -12,6 +12,6 @@ const router = Router();
 
 router.post('/signup', signupController);
 router.post('/login', loginController);
-router.get('/verify-token', isAuthenticated, verifyController);
+router.get('/verify', isAuthenticated, verifyController);
 
 module.exports = router;

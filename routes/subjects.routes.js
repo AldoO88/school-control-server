@@ -1,11 +1,11 @@
 const Router = require('express');
 
-import { 
+const { 
   getAllSubjects, 
   getSubjectById, 
   createSubject, 
   updateSubject, 
-  deleteSubject } from "../controllers/subjects.controller.js";
+  deleteSubject } = require('../controllers/subjects.controller.js');
 
 const router = Router();
 
