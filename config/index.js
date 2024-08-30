@@ -29,7 +29,7 @@ module.exports = (app) => {
   );
 
   // In development environment the app logs
-  app.use(logger("production"));
+  app.use(logger("--omit=dev"));
 
   // To have access to `body` property in the request
   app.use(express.json());
