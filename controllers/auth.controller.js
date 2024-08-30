@@ -80,7 +80,7 @@ const loginController = async (req, res, next) => {
 }
 
 const verifyController = async (req, res, next) => {
-  console.log(req.payload);
+  //console.log(req.payload);
   res.status(200).json(req.payload);
 }
 
