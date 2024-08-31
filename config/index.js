@@ -26,6 +26,7 @@ module.exports = (app) => {
     cors({
       origin: 'https://ofimaticatec47.netlify.app',
       methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
 
