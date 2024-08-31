@@ -11,17 +11,6 @@ const express = require("express");
 
 const app = express();
 
-<<<<<<< HEAD
-=======
-const cors = require("cors");
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  }
-));
-
->>>>>>> 312cbe1df06b2bfc719f7518c1d35413251e15da
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware
 require("./config")(app);
 
