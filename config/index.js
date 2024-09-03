@@ -24,7 +24,7 @@ module.exports = (app) => {
   // controls a very specific header to pass headers from the frontend
   app.use(
     cors({
-      origin: 'https://ofimaticatec47.netlify.app',
+      origin: ['https://ofimaticatec47.netlify.app', 'http://localhost:5173'],
       methods: ["GET", "POST", "PUT", "DELETE"],
       allowedHeaders: ['Content-Type', 'Authorization'],
     })
