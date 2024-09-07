@@ -22,15 +22,20 @@ const createAnswer = async (req, res, next) => {
 
 const getAnsweredTest = async (req, res, next) => {
   const { userId } = req.params;
+  console.log(userId)
   try {
-    const testAnswered = await User.findById({ userId })
-    .populate({
-      path: 'answers'
-    });
-    console.log(testAnswered.test);
-    res.status(200).json(testAnswered.test);
+    if(!mongoose.Types.ObjectId.isValid(userId)){
+      res.status(400).json({ message: 'wrong id'})
+      return
+    }
+    const testAnswered = await Answer.find({ userId: userId })
+    
+    console.log(testAnswered);
+    res.status(200).json(testAnswered);
+    
   }catch (error) {
-    res.status(500).json({ message: error.message });
+    console.log('Error al obtener respuestas para el usuario', error)
+    res.status(500).json({ message: 'Error del servidor', error: error.message });
   }
 }
     
