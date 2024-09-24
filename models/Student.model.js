@@ -12,7 +12,19 @@ const StudentSchema = new Schema(
       required: [true, 'Student lastname is required'],
       trim: true
     },
-    email: {
+    grade: {
+      type: String,
+      required: [true, 'Student grade is required'],
+      trim: true,
+      enum: ['1RO', '2DO', '3RO']
+    },
+    group: {
+      type: String,
+      required: [true, 'Student group is required'],
+      trim: true,
+      enum: ['A', 'B', 'C', 'D']
+    },
+    /*email: {
       type: String,
       required: [true, 'Student email is required'],
       unique: true,
@@ -37,7 +49,7 @@ const StudentSchema = new Schema(
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User'
-    }
+    }*/
   },
   {
     timestamps: true 
