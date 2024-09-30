@@ -1,6 +1,6 @@
 const Router = require('express');
 
-const { createAnswer, getAnsweredTest } = require('../controllers/answers.controller');
+const { createAnswer, getAnsweredTest, getTotalTest } = require('../controllers/answers.controller');
 
 const router = Router();
 
