@@ -4,7 +4,9 @@ const Student = require("../models/Student.model");
 
 const createTest = async (req, res, next) => {
   const { answers, result } = req.body;
-  const { category, studentId } = req.params;
+  const { category, userId } = req.params;
+
+  console.log('UserId:', userId);
 
   try {
     const responses = Object.keys(answers).map((questionNumber) => ({
@@ -12,12 +14,13 @@ const createTest = async (req, res, next) => {
       selectedOption: answers[questionNumber].selectedOption, // Extraemos la opción seleccionada
       selectedIndex: answers[questionNumber].selectedIndex, // Extraemos el índice seleccionado
     }));
-    const newTest = await Test.create({
+    const newTest = await Answer.create({
       test: category,
       responses,
       result,
-      studentId,
+      userId,
     });
+    console.log('Test creado:', newTest);
     res.status(201).json(newTest);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -4,8 +4,8 @@ const { createTest, getAnsweredTest, getTotalTest } = require('../controllers/te
 
 const router = Router();
 
-router.post('/:category/:stundentId', createTest);
-router.get('/:stundentId', getAnsweredTest);
+router.post('/:category/:userId', createTest);
+router.get('/:userId', getAnsweredTest);
 router.get('/', getTotalTest);
 
 module.exports = router;
