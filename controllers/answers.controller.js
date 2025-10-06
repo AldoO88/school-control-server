@@ -121,4 +121,43 @@ const getTotalTest = async (req, res, next) => {
   }
 };
 
-module.exports = { createAnswer, getAnsweredTest, getTotalTest };
+const getStudentsByGroupAndCategory = async (req, res) => {
+  const { grade, group, category } = req.query;
+
+  try {
+    // Obtener los estudiantes del grupo especificado
+    const students = await Student.find({ grade, group }).select("_id name lastname");
+
+    // Obtener los IDs de los estudiantes
+    const studentIds = students.map(student => student._id);
+
+    // Obtener las respuestas de los estudiantes filtradas por categoría
+    const answers = await Answer.find({
+      userId: { $in: studentIds },
+      test: category,
+    }).select("userId result");
+
+    // Mapear los resultados con los estudiantes
+    const result = students.map(student => {
+      const answer = answers.find(ans => ans.userId.toString() === student._id.toString());
+      return {
+        name: student.name,
+        lastname: student.lastname,
+        grade: student.grade,
+        group: student.group,
+        result: answer ? answer.result : "Sin resultado",
+      };
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error al obtener estudiantes por grupo y categoría:", error);
+    res.status(500).json({ message: "Error del servidor", error: error.message });
+  }
+};
+
+module.exports = { getStudentsByGroupAndCategory };
+
+
+
+module.exports = { createAnswer, getAnsweredTest, getTotalTest, getStudentsByGroupAndCategory };
