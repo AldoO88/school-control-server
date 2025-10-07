@@ -169,11 +169,12 @@ const getStudentsByGroupAndCategory = async (req, res) => {
     const studentIds = students.map(student => student._id);
     console.log('👥 IDs de estudiantes:', studentIds);
 
-    // Obtener las respuestas de los estudiantes filtradas por categoría
-    const answers = await Answer.find({
-      userId: { $in: studentIds },
-      test: category,
-    }).select("userId result");
+// Obtener las respuestas de los estudiantes filtradas por categoría y registradas este año
+const answers = await Answer.find({
+  userId: { $in: studentIds },
+  test: category,
+  createdAt: { $gte: startOfYear, $lte: endOfYear }, // Filtrar respuestas de este año
+}).select("userId result createdAt");
 
     console.log('📋 Respuestas encontradas:', answers.length);
     console.log('📋 Respuestas:', answers);
