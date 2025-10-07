@@ -154,9 +154,16 @@ const getStudentsByGroupAndCategory = async (req, res) => {
   try {
     console.log('🔍 Buscando estudiantes...');
     // Obtener los estudiantes del grupo especificado
-    const students = await Student.find({ grade, group });
-    console.log(' Estduiantes encontrados:', students);
-    console.log('📚 Estudiantes encontrados:', students.length);
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(`${currentYear}-01-01`);
+    const endOfYear = new Date(`${currentYear}-12-31`);
+
+    // Filtrar estudiantes registrados en el año actual
+    const students = await Student.find({
+      grade,
+      group,
+      createdAt: { $gte: startOfYear, $lte: endOfYear },
+    }).select("_id name lastname grade group createdAt");
 
     // Obtener los IDs de los estudiantes
     const studentIds = students.map(student => student._id);
@@ -177,12 +184,11 @@ const getStudentsByGroupAndCategory = async (req, res) => {
       return {
         name: student.name,
         lastname: student.lastname,
-        grade: student.grade || "Sin grado",
-        group: student.group || "Sin grupo",
+        grade: student.grade,
+        group: student.group,
         result: answer ? answer.result : "Sin resultado",
       };
     });
-    
     console.log(result);
     res.status(200).json(result);
   } catch (error) {
