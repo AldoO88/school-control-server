@@ -121,82 +121,65 @@ const getTotalTest = async (req, res, next) => {
   }
 };
 
-const getStudentsByGroupAndCategory = async (req, res) => {
-  console.log('=== INICIO getStudentsByGroupAndCategory ===');
-  
-  // Verificar si req.body existe
-  console.log('req.body es:', typeof req.body, req.body);
-  console.log('req.query es:', typeof req.query, req.query);
-  
-  // Extraer directamente desde req.body (POST) o req.query (GET)
-  const body = req.body || {};
-  const query = req.query || {};
-  const { grade, group, category } = { ...body, ...query };
-
-  console.log('req.body:', req.body);
-  console.log('req.query:', req.query);
-  console.log('grade:', grade);
-  console.log('group:', group);
-  console.log('category:', category); 
-
-  // Validar que los parámetros requeridos estén presentes
-  if (!grade || !group || !category) {
-    console.log('❌ Parámetros faltantes');
-    return res.status(400).json({ 
-      message: "Faltan parámetros requeridos", 
-      required: ["grade", "group", "category"],
-      received: { grade, group, category }
-    });
-  }
-
-  console.log('✅ Parámetros validados correctamente');
-
+const getStudentsWithAnswers = async (req, res) => {
   try {
-    console.log('🔍 Buscando estudiantes...');
-    // Obtener los estudiantes del grupo especificado
-    const currentYear = 2025;
-    const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`); // Inicio del año en UTC
-    const endOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`); 
+    const { grade, group, category } = req.query;
 
-    // Filtrar estudiantes registrados en el año actual
+    // Validar parámetros requeridos
+    if (!grade || !group || !category) {
+      return res.status(400).json({ message: "Faltan parámetros requeridos (grade, group, category)." });
+    }
+
+    console.log("✅ Parámetros validados correctamente");
+
+    // Definir el rango de fechas para el año actual
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`);
+    const endOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`);
+
+    console.log("📅 Inicio del año:", startOfYear);
+    console.log("📅 Fin del año:", endOfYear);
+
+    // Obtener los estudiantes del grupo especificado
     const students = await Student.find({
       grade,
       group,
       createdAt: { $gte: startOfYear, $lte: endOfYear },
     }).select("_id name lastname grade group createdAt");
-    students.forEach(student => { 
-      console.log("👤 Estudiante encontrado:", student.name, student.lastname, "Registrado el:", student.createdAt);
-    });
+
+    console.log("👥 Estudiantes encontrados:", students.length);
 
     // Obtener los IDs de los estudiantes
     const studentIds = students.map(student => student._id);
-    console.log('👥 IDs de estudiantes:', studentIds);
 
-// Obtener las respuestas de los estudiantes filtradas por categoría y registradas este año
-const answers = await Answer.find({
-  userId: { $in: studentIds },
-  test: category,
-  createdAt: { $gte: startOfYear, $lte: endOfYear }, // Filtrar respuestas de este año
-}).select("userId result createdAt");
+    // Obtener las respuestas de los estudiantes filtradas por categoría y registradas este año
+    const answers = await Answer.find({
+      userId: { $in: studentIds },
+      test: category,
+      createdAt: { $gte: startOfYear, $lte: endOfYear },
+    }).select("userId result createdAt");
 
-    console.log('📋 Respuestas encontradas:', answers.length);
-    console.log('📋 Respuestas:', answers);
-    answers.forEach(answer => {
-      console.log("📋 Fecha de respuesta:", answer.createdAt);
-    });
+    console.log("📋 Respuestas encontradas:", answers.length);
+
+    // Filtrar estudiantes que tienen respuestas relacionadas
+    const studentsWithAnswers = students.filter(student =>
+      answers.some(answer => answer.userId.toString() === student._id.toString())
+    );
+
+    console.log("👥 Estudiantes con respuestas:", studentsWithAnswers.length);
 
     // Mapear los resultados con los estudiantes
-    const result = students.map(student => {
+    const result = studentsWithAnswers.map(student => {
       // Filtrar todas las respuestas asociadas al estudiante
       const studentAnswers = answers.filter(ans => ans.userId.toString() === student._id.toString());
-    
+
       // Si hay respuestas, seleccionar la más reciente
       const latestAnswer = studentAnswers.length > 0
         ? studentAnswers.reduce((latest, current) => {
             return new Date(latest.createdAt) > new Date(current.createdAt) ? latest : current;
           })
         : null;
-    
+
       // Manejar el campo result
       let parsedResult;
       if (latestAnswer) {
@@ -210,7 +193,7 @@ const answers = await Answer.find({
       } else {
         parsedResult = { score: "Sin resultado", interpretation: "" };
       }
-    
+
       return {
         name: student.name,
         lastname: student.lastname,
@@ -220,20 +203,12 @@ const answers = await Answer.find({
         interpretation: parsedResult.interpretation,
       };
     });
-    
-    // Eliminar duplicados en el resultado final (por seguridad)
-    const uniqueResults = result.filter((item, index, self) =>
-      index === self.findIndex((t) => (
-        t.name === item.name && t.lastname === item.lastname && t.grade === item.grade && t.group === item.group
-      ))
-    );
-    
-    console.log(uniqueResults);
-    res.status(200).json(uniqueResults);
-    
+
+    console.log("Resultados finales:", result);
+    res.status(200).json(result);
   } catch (error) {
-    console.error("Error al obtener estudiantes por grupo y categoría:", error);
-    res.status(500).json({ message: "Error del servidor", error: error.message });
+    console.error("❌ Error al obtener estudiantes con respuestas:", error);
+    res.status(500).json({ message: "Error interno del servidor", error: error.message });
   }
 };
 
