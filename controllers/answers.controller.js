@@ -146,7 +146,7 @@ const getStudentsByGroupAndCategory = async (req, res) => {
       group,
       createdAt: { $gte: startOfYear, $lte: endOfYear },
     }).select("_id name lastname grade group createdAt")
-    .sort({ lastname: 1, name: 1 }); // Ordenar por apellido y nombre
+    .sort({ lastname: 1 }); // Ordenar por apellido y nombre
 
     console.log("👥 Estudiantes encontrados:", students.length);
 
