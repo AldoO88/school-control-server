@@ -190,21 +190,38 @@ const answers = await Answer.find({
       // Filtrar todas las respuestas asociadas al estudiante
       const studentAnswers = answers.filter(ans => ans.userId.toString() === student._id.toString());
     
-      // Si hay respuestas, puedes decidir cómo manejarlas
+      // Si hay respuestas, seleccionar la más reciente
       const latestAnswer = studentAnswers.length > 0
         ? studentAnswers.reduce((latest, current) => {
             return new Date(latest.createdAt) > new Date(current.createdAt) ? latest : current;
           })
         : null;
     
+      // Manejar el campo result
+      let parsedResult;
+      if (latestAnswer) {
+        try {
+          // Intentar parsear como JSON
+          parsedResult = JSON.parse(latestAnswer.result);
+        } catch (error) {
+          // Si no es JSON, usar el valor directamente
+          parsedResult = { score: latestAnswer.result, interpretation: "" };
+        }
+      } else {
+        parsedResult = { score: "Sin resultado", interpretation: "" };
+      }
+    
       return {
         name: student.name,
         lastname: student.lastname,
         grade: student.grade,
         group: student.group,
-        result: latestAnswer ? latestAnswer.result : "Sin resultado",
+        score: parsedResult.score,
+        interpretation: parsedResult.interpretation,
       };
     });
+    
+    // Eliminar duplicados en el resultado final (por seguridad)
     const uniqueResults = result.filter((item, index, self) =>
       index === self.findIndex((t) => (
         t.name === item.name && t.lastname === item.lastname && t.grade === item.grade && t.group === item.group
@@ -213,6 +230,7 @@ const answers = await Answer.find({
     
     console.log(uniqueResults);
     res.status(200).json(uniqueResults);
+    
   } catch (error) {
     console.error("Error al obtener estudiantes por grupo y categoría:", error);
     res.status(500).json({ message: "Error del servidor", error: error.message });
