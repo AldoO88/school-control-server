@@ -154,45 +154,58 @@ const getStudentsByGroupAndCategory = async (req, res) => {
   try {
     console.log('🔍 Buscando estudiantes...');
     // Obtener los estudiantes del grupo especificado
-    const currentYear = new Date().getFullYear();
+    const currentYear = 2025;
+    const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`); // Inicio del año en UTC
+    const endOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`); 
 
-    // 2. Definir el rango de fechas para el año actual
-    const startDate = new Date(currentYear, 0, 1); // 1 de enero del año actual
-    const endDate = new Date(currentYear, 11, 31, 23, 59, 59); // 31 de diciembre del año actual
-
-    // 3. Obtener de la base de datos SÓLO los registros del año actual
-    //    Esta es la forma más eficiente, ya que la base de datos hace el trabajo pesado.
-    const studentsThisYear = await Student.find({
-      createdAt: { $gte: startDate, $lte: endDate }
+    // Filtrar estudiantes registrados en el año actual
+    const students = await Student.find({
+      grade,
+      group,
+      createdAt: { $gte: startOfYear, $lte: endOfYear },
+    }).select("_id name lastname grade group createdAt");
+    students.forEach(student => { 
+      console.log("👤 Estudiante encontrado:", student.name, student.lastname, "Registrado el:", student.createdAt);
     });
 
-    const answersThisYear = await Answer.find({
-      createdAt: { $gte: startDate, $lte: endDate }
+    // Obtener los IDs de los estudiantes
+    const studentIds = students.map(student => student._id);
+    console.log('👥 IDs de estudiantes:', studentIds);
+
+// Obtener las respuestas de los estudiantes filtradas por categoría y registradas este año
+const answers = await Answer.find({
+  userId: { $in: studentIds },
+  test: category,
+  createdAt: { $gte: startOfYear, $lte: endOfYear }, // Filtrar respuestas de este año
+}).select("userId result createdAt");
+
+    console.log('📋 Respuestas encontradas:', answers.length);
+    console.log('📋 Respuestas:', answers);
+    answers.forEach(answer => {
+      console.log("📋 Fecha de respuesta:", answer.createdAt);
     });
 
-    // 4. Procesar los datos (lógica que ya tenías, pero ahora con datos pre-filtrados)
-    const result = studentsThisYear.map(student => {
-      // Filtrar todas las respuestas de este año asociadas al estudiante
-      const studentAnswers = answersThisYear.filter(ans => ans.userId.toString() === student._id.toString());
-
-      // Encontrar la respuesta más reciente de este año
+    // Mapear los resultados con los estudiantes
+    const result = students.map(student => {
+      // Filtrar todas las respuestas asociadas al estudiante
+      const studentAnswers = answers.filter(ans => ans.userId.toString() === student._id.toString());
+    
+      // Si hay respuestas, puedes decidir cómo manejarlas
       const latestAnswer = studentAnswers.length > 0
         ? studentAnswers.reduce((latest, current) => {
             return new Date(latest.createdAt) > new Date(current.createdAt) ? latest : current;
           })
         : null;
-
-      // Devolver el objeto estructurado
+    
       return {
-        _id: student._id, // Es buena práctica devolver también el ID
         name: student.name,
         lastname: student.lastname,
         grade: student.grade,
         group: student.group,
         result: latestAnswer ? latestAnswer.result : "Sin resultado",
-        lastAnswerDate: latestAnswer ? latestAnswer.createdAt : null, // Opcional: devolver la fecha del último resultado
       };
-    });    console.log(result);
+    });
+    console.log(result);
     res.status(200).json(result);
   } catch (error) {
     console.error("Error al obtener estudiantes por grupo y categoría:", error);
