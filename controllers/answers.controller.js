@@ -152,59 +152,43 @@ const getStudentsByGroupAndCategory = async (req, res) => {
   console.log('✅ Parámetros validados correctamente');
 
   try {
-    console.log('🔍 Buscando estudiantes...');
-    // Obtener los estudiantes del grupo especificado
-    const currentYear = 2025;
-    const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`); // Inicio del año en UTC
-    const endOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`); 
+    const currentYear = new Date().getFullYear();
 
-    // Filtrar estudiantes registrados en el año actual
-    const students = await Student.find({
-      grade,
-      group,
-      createdAt: { $gte: startOfYear, $lte: endOfYear },
-    }).select("_id name lastname grade group createdAt");
-    students.forEach(student => { 
-      console.log("👤 Estudiante encontrado:", student.name, student.lastname, "Registrado el:", student.createdAt);
-    });
+// 1. Filtrar a los estudiantes registrados en el año actual
+//    Asumo que el modelo 'student' tiene un campo como 'createdAt' o 'registrationDate'
+const studentsThisYear = students.filter(student => {
+  // Asegúrate de que el campo de fecha exista antes de intentar leerlo
+  const registrationDate = student.createdAt || student.registrationDate;
+  return registrationDate && new Date(registrationDate).getFullYear() === currentYear;
+});
 
-    // Obtener los IDs de los estudiantes
-    const studentIds = students.map(student => student._id);
-    console.log('👥 IDs de estudiantes:', studentIds);
+// 2. Filtrar las respuestas que fueron creadas en el año actual
+const answersThisYear = answers.filter(ans => {
+  return ans.createdAt && new Date(ans.createdAt).getFullYear() === currentYear;
+});
 
-// Obtener las respuestas de los estudiantes filtradas por categoría y registradas este año
-const answers = await Answer.find({
-  userId: { $in: studentIds },
-  test: category,
-  createdAt: { $gte: startOfYear, $lte: endOfYear }, // Filtrar respuestas de este año
-}).select("userId result createdAt");
+// 3. Ahora, mapea sobre los estudiantes de este año y busca sus respuestas de este año
+const result = studentsThisYear.map(student => {
+  // Filtrar las respuestas asociadas al estudiante (ya están filtradas por año)
+  const studentAnswers = answersThisYear.filter(ans => ans.userId.toString() === student._id.toString());
 
-    console.log('📋 Respuestas encontradas:', answers.length);
-    console.log('📋 Respuestas:', answers);
-    answers.forEach(answer => {
-      console.log("📋 Fecha de respuesta:", answer.createdAt);
-    });
+  // Encontrar la respuesta más reciente de este año
+  const latestAnswer = studentAnswers.length > 0
+    ? studentAnswers.reduce((latest, current) => {
+        // No es necesario crear nuevos objetos Date en cada comparación si ya sabes que son válidos
+        return new Date(latest.createdAt) > new Date(current.createdAt) ? latest : current;
+      })
+    : null;
 
-    // Mapear los resultados con los estudiantes
-    const result = students.map(student => {
-      // Filtrar todas las respuestas asociadas al estudiante
-      const studentAnswers = answers.filter(ans => ans.userId.toString() === student._id.toString());
-    
-      // Si hay respuestas, puedes decidir cómo manejarlas
-      const latestAnswer = studentAnswers.length > 0
-        ? studentAnswers.reduce((latest, current) => {
-            return new Date(latest.createdAt) > new Date(current.createdAt) ? latest : current;
-          })
-        : null;
-    
-      return {
-        name: student.name,
-        lastname: student.lastname,
-        grade: student.grade,
-        group: student.group,
-        result: latestAnswer ? latestAnswer.result : "Sin resultado",
-      };
-    });
+  return {
+    name: student.name,
+    lastname: student.lastname,
+    grade: student.grade,
+    group: student.group,
+    // Si no hay respuesta este año, se mostrará "Sin resultado"
+    result: latestAnswer ? latestAnswer.result : "Sin resultado",
+  };
+});
     console.log(result);
     res.status(200).json(result);
   } catch (error) {
