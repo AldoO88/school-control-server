@@ -121,7 +121,7 @@ const getTotalTest = async (req, res, next) => {
   }
 };
 
-const getStudentsWithAnswers = async (req, res) => {
+const getStudentsByGroupAndCategory = async (req, res) => {
   try {
     const { grade, group, category } = req.query;
 
