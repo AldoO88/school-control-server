@@ -187,13 +187,22 @@ const answers = await Answer.find({
 
     // Mapear los resultados con los estudiantes
     const result = students.map(student => {
-      const answer = answers.find(ans => ans.userId.toString() === student._id.toString());
+      // Filtrar todas las respuestas asociadas al estudiante
+      const studentAnswers = answers.filter(ans => ans.userId.toString() === student._id.toString());
+    
+      // Si hay respuestas, puedes decidir cómo manejarlas
+      const latestAnswer = studentAnswers.length > 0
+        ? studentAnswers.reduce((latest, current) => {
+            return new Date(latest.createdAt) > new Date(current.createdAt) ? latest : current;
+          })
+        : null;
+    
       return {
         name: student.name,
         lastname: student.lastname,
         grade: student.grade,
         group: student.group,
-        result: answer ? answer.result : "Sin resultado",
+        result: latestAnswer ? latestAnswer.result : "Sin resultado",
       };
     });
     console.log(result);
