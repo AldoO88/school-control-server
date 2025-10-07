@@ -154,7 +154,7 @@ const getStudentsByGroupAndCategory = async (req, res) => {
   try {
     console.log('🔍 Buscando estudiantes...');
     // Obtener los estudiantes del grupo especificado
-    const currentYear = new Date().getFullYear();
+    const currentYear = 2025;
     const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`); // Inicio del año en UTC
     const endOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`); 
 
