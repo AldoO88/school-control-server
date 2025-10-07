@@ -166,7 +166,7 @@ const getStudentsByGroupAndCategory = async (req, res) => {
     }).select("_id name lastname grade group createdAt");
     students.forEach(student => { 
       console.log("👤 Estudiante encontrado:", student.name, student.lastname, "Registrado el:", student.createdAt);
-    }
+    });
 
     // Obtener los IDs de los estudiantes
     const studentIds = students.map(student => student._id);
