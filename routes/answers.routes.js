@@ -6,7 +6,7 @@ const router = Router();
 
 router.post('/:category/:userId', createAnswer);
 router.get('/:userId', getAnsweredTest);
-router.get("/students/group-category", getStudentsByGroupAndCategory);
+router.post("/students/group-category", getStudentsByGroupAndCategory);
 
 module.exports = router;
 

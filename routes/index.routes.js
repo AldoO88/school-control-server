@@ -11,7 +11,7 @@ router.get("/", (req, res, next) => {
 });
 
 router.use("/subjects", isAuthenticated, subjectRouter);
-router.use("/tests", isAuthenticated, answerRouter)
+router.use("/tests", /*isAuthenticated*/ answerRouter)
 router.use("/students", studentRouter);
 router.use("/evaluations", testRouter)
 

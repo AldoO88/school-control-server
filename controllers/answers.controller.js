@@ -122,20 +122,53 @@ const getTotalTest = async (req, res, next) => {
 };
 
 const getStudentsByGroupAndCategory = async (req, res) => {
-  const { grade, group, category } = req.query;
+  console.log('=== INICIO getStudentsByGroupAndCategory ===');
+  
+  // Verificar si req.body existe
+  console.log('req.body es:', typeof req.body, req.body);
+  console.log('req.query es:', typeof req.query, req.query);
+  
+  // Extraer directamente desde req.body (POST) o req.query (GET)
+  const body = req.body || {};
+  const query = req.query || {};
+  const { grade, group, category } = { ...body, ...query };
+
+  console.log('req.body:', req.body);
+  console.log('req.query:', req.query);
+  console.log('grade:', grade);
+  console.log('group:', group);
+  console.log('category:', category); 
+
+  // Validar que los parámetros requeridos estén presentes
+  if (!grade || !group || !category) {
+    console.log('❌ Parámetros faltantes');
+    return res.status(400).json({ 
+      message: "Faltan parámetros requeridos", 
+      required: ["grade", "group", "category"],
+      received: { grade, group, category }
+    });
+  }
+
+  console.log('✅ Parámetros validados correctamente');
 
   try {
+    console.log('🔍 Buscando estudiantes...');
     // Obtener los estudiantes del grupo especificado
     const students = await Student.find({ grade, group }).select("_id name lastname");
+    console.log('📚 Estudiantes encontrados:', students.length);
 
     // Obtener los IDs de los estudiantes
     const studentIds = students.map(student => student._id);
+    console.log('👥 IDs de estudiantes:', studentIds);
 
     // Obtener las respuestas de los estudiantes filtradas por categoría
     const answers = await Answer.find({
       userId: { $in: studentIds },
       test: category,
     }).select("userId result");
+
+    console.log('📋 Respuestas encontradas:', answers.length);
+    console.log('📋 Respuestas:', answers);
 
     // Mapear los resultados con los estudiantes
     const result = students.map(student => {
@@ -148,16 +181,12 @@ const getStudentsByGroupAndCategory = async (req, res) => {
         result: answer ? answer.result : "Sin resultado",
       };
     });
-
+    console.log(result);
     res.status(200).json(result);
   } catch (error) {
     console.error("Error al obtener estudiantes por grupo y categoría:", error);
     res.status(500).json({ message: "Error del servidor", error: error.message });
   }
 };
-
-module.exports = { getStudentsByGroupAndCategory };
-
-
 
 module.exports = { createAnswer, getAnsweredTest, getTotalTest, getStudentsByGroupAndCategory };

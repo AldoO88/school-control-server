@@ -1,0 +1,7 @@
+
+> school-control-server-server@0.0.0 start
+> node server.js
+
+Server listening on http://localhost:5005
+Connected to Mongo! Database name: "school-control-server"
+[0mPOST /api/tests/students/group-category [31m500[0m 11.787 ms - 56[0m
