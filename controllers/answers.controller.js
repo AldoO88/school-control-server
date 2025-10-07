@@ -179,7 +179,8 @@ const answers = await Answer.find({
     console.log('📋 Respuestas encontradas:', answers.length);
     console.log('📋 Respuestas:', answers);
     answers.forEach(answer => {
-    console.log("📋 Fecha de respuesta:", answer.createdAt);
+      console.log("📋 Fecha de respuesta:", answer.createdAt);
+    });
 
     // Mapear los resultados con los estudiantes
     const result = students.map(student => {
