@@ -155,8 +155,8 @@ const getStudentsByGroupAndCategory = async (req, res) => {
     console.log('🔍 Buscando estudiantes...');
     // Obtener los estudiantes del grupo especificado
     const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(`${currentYear}-01-01`);
-    const endOfYear = new Date(`${currentYear}-12-31`);
+    const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`); // Inicio del año en UTC
+    const endOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`); 
 
     // Filtrar estudiantes registrados en el año actual
     const students = await Student.find({
@@ -178,6 +178,8 @@ const answers = await Answer.find({
 
     console.log('📋 Respuestas encontradas:', answers.length);
     console.log('📋 Respuestas:', answers);
+    answers.forEach(answer => {
+    console.log("📋 Fecha de respuesta:", answer.createdAt);
 
     // Mapear los resultados con los estudiantes
     const result = students.map(student => {
