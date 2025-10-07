@@ -205,8 +205,14 @@ const answers = await Answer.find({
         result: latestAnswer ? latestAnswer.result : "Sin resultado",
       };
     });
-    console.log(result);
-    res.status(200).json(result);
+    const uniqueResults = result.filter((item, index, self) =>
+      index === self.findIndex((t) => (
+        t.name === item.name && t.lastname === item.lastname && t.grade === item.grade && t.group === item.group
+      ))
+    );
+    
+    console.log(uniqueResults);
+    res.status(200).json(uniqueResults);
   } catch (error) {
     console.error("Error al obtener estudiantes por grupo y categoría:", error);
     res.status(500).json({ message: "Error del servidor", error: error.message });
