@@ -202,11 +202,11 @@ const getStudentsByGroupAndCategory = async (req, res) => {
 
       return {
         name: student.name.toUpperCase(),
-        lastname: student.lastname.tupperCase(),
+        lastname: student.lastname.topperCase(),
         grade: student.grade,
         group: student.group,
         score: parsedResult.score,
-        interpretation: parsedResult.interpretation.tupperCase(),
+        interpretation: parsedResult.interpretation.topperCase(),
       };
     });
 
