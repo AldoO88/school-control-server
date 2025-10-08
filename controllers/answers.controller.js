@@ -146,9 +146,14 @@ const getStudentsByGroupAndCategory = async (req, res) => {
       group,
       createdAt: { $gte: startOfYear, $lte: endOfYear },
     }).select("_id name lastname grade group createdAt")
-    .sort({ lastname: 1 }); // Ordenar por apellido y nombre
 
     console.log("👥 Estudiantes encontrados:", students.length);
+
+    const sortedStudents = students.sort((a, b) => {
+      const lastnameA = a.lastname.trim().toLowerCase();
+      const lastnameB = b.lastname.trim().toLowerCase();
+      return lastnameA.localeCompare(lastnameB);
+    });
 
     // Obtener los IDs de los estudiantes
     const studentIds = students.map(student => student._id);
@@ -196,12 +201,12 @@ const getStudentsByGroupAndCategory = async (req, res) => {
       }
 
       return {
-        name: student.name,
-        lastname: student.lastname,
+        name: student.name.toUpperCase(),
+        lastname: student.lastname.tupperCase(),
         grade: student.grade,
         group: student.group,
         score: parsedResult.score,
-        interpretation: parsedResult.interpretation,
+        interpretation: parsedResult.interpretation.tupperCase(),
       };
     });
 
