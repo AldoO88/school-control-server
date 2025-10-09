@@ -206,15 +206,17 @@ const getStudentsByGroupAndCategory = async (req, res) => {
         grade: student.grade,
         group: student.group,
         score: parsedResult.score,
-        interpretation: parsedResult.interpretation
-        .normalize("NFD") // Normalizar para descomponer caracteres acentuados
-        .replace(/[\u0300-\u036f]/g, "") // Eliminar diacríticos (acentos)
-        .toUpperCase() === "KIENESTESICO" 
-        ? 'KINESTÉSICO' 
-        : parsedResult.interpretation.toUpperCase(),
-      };
+        interpretation: (() => {
+    const normalizedInterpretation = parsedResult.interpretation
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase();
+    return normalizedInterpretation === "KIENESTESICO"
+      ? "KINESTÉSICO"
+      : parsedResult.interpretation.toUpperCase();
+      })(),
+    };
     });
-
     console.log("Resultados finales:", result);
     res.status(200).json(result);
   } catch (error) {
