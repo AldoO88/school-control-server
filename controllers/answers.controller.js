@@ -206,7 +206,9 @@ const getStudentsByGroupAndCategory = async (req, res) => {
         grade: student.grade,
         group: student.group,
         score: parsedResult.score,
-        interpretation: parsedResult.interpretation.toUpperCase(),
+        interpretation: parsedResult.interpretation.toUpperCase() === 'KIENESTÉSICO' 
+        ? 'KINESTÉSICO' 
+        : parsedResult.interpretation.toUpperCase(),
       };
     });
 
