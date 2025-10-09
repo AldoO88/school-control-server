@@ -194,10 +194,10 @@ const getStudentsByGroupAndCategory = async (req, res) => {
           parsedResult = JSON.parse(latestAnswer.result);
         } catch (error) {
           // Si no es JSON, usar el valor directamente
-          parsedResult = { score: latestAnswer.result, interpretation: "" };
+          parsedResult = { score: "", interpretation:  latestAnswer.result };
         }
       } else {
-        parsedResult = { score: "Sin resultado", interpretation: "" };
+        parsedResult = { score: "", interpretation: "Sin resultado" };
       }
 
       return {
