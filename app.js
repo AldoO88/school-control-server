@@ -15,10 +15,15 @@ const app = express();
 
 // ℹ️ CORS debe ir antes de la configuración
 app.use(cors({
-    origin: ['http://localhost:5174', 'http://localhost:5173'], // permitir ambos puertos
+    origin: [
+        'http://localhost:5174', 
+        'http://localhost:5173',
+        'https://ofimaticatec47.netlify.app'
+    ], // permitir ambos puertos
     credentials: true
 }));
 
+app.options("*", cors());
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware
 require("./config")(app);
 
