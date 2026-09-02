@@ -9,6 +9,11 @@ const createTest = async (req, res, next) => {
   console.log('UserId:', userId);
 
   try {
+    const existing = await Answer.findOne({ userId, test: category });
+    if (existing) {
+      return res.status(409).json({ message: "Ya realizaste este quiz" });
+    }
+
     const responses = Object.keys(answers).map((questionNumber) => ({
       questionNumber: parseInt(questionNumber), // Convertimos el número de pregunta a un número entero
       selectedOption: answers[questionNumber].selectedOption, // Extraemos la opción seleccionada

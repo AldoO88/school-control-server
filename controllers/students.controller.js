@@ -20,4 +20,13 @@ const createStudent = async (req, res, next) => {
   }
 }
 
-module.exports = { createStudent };
+const getAllStudents = async (req, res, next) => {
+  try {
+    const students = await Student.find().sort({ grade: 1, group: 1, lastname: 1 });
+    res.status(200).json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+module.exports = { createStudent, getAllStudents };
