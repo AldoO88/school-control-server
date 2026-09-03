@@ -288,11 +288,11 @@ const getStudentsByGrade = async (req, res) => {
 
     const mergedStudents = Array.from(mergedMap.values());
 
-    // Ordenar por grupo y apellido
+    // Ordenar por apellido y luego nombre
     mergedStudents.sort((a, b) => {
-      const groupCmp = a.group.localeCompare(b.group);
-      if (groupCmp !== 0) return groupCmp;
-      return a.lastname.localeCompare(b.lastname);
+      const lastCmp = a.lastname.localeCompare(b.lastname);
+      if (lastCmp !== 0) return lastCmp;
+      return a.name.localeCompare(b.name);
     });
 
     const result = mergedStudents.map(student => {
