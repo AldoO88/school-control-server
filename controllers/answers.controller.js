@@ -239,4 +239,82 @@ const getStudentsByGroupAndCategory = async (req, res) => {
   }
 };
 
-module.exports = { createAnswer, getAnsweredTest, getTotalTest, getStudentsByGroupAndCategory };
+const getStudentsByGrade = async (req, res) => {
+  try {
+    const { grade } = req.query;
+
+    if (!grade) {
+      return res.status(400).json({ message: "Falta el parámetro requerido: grade." });
+    }
+
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`);
+    const endOfYear = new Date(`${currentYear}-12-31T23:59:59.999Z`);
+
+    const students = await Student.find({
+      grade,
+      createdAt: { $gte: startOfYear, $lte: endOfYear },
+    }).select("_id name lastname grade group createdAt");
+
+    const sortedStudents = students.sort((a, b) => {
+      const groupCmp = a.group.localeCompare(b.group);
+      if (groupCmp !== 0) return groupCmp;
+      return a.lastname.trim().toLowerCase().localeCompare(b.lastname.trim().toLowerCase());
+    });
+
+    const studentIds = students.map(student => student._id);
+
+    const answers = await Answer.find({
+      userId: { $in: studentIds },
+      createdAt: { $gte: startOfYear, $lte: endOfYear },
+    }).select("userId test result createdAt");
+
+    const categories = [
+      "Beck1", "Beck", "Lynn", "Peter",
+      "ofimatica-1RO", "ofimatica-2DO", "ofimatica-3RO",
+    ];
+
+    const result = sortedStudents.map(student => {
+      const studentAnswers = answers.filter(
+        ans => ans.userId.toString() === student._id.toString()
+      );
+
+      const categoryResults = {};
+      categories.forEach(cat => {
+        const catAnswers = studentAnswers.filter(a => a.test === cat);
+        if (catAnswers.length === 0) {
+          categoryResults[cat] = { score: "", interpretation: "Sin resultado" };
+          return;
+        }
+        const latest = catAnswers.reduce((l, c) =>
+          new Date(l.createdAt) > new Date(c.createdAt) ? l : c
+        );
+        let parsed;
+        try {
+          parsed = JSON.parse(latest.result);
+        } catch {
+          parsed = { score: "", interpretation: latest.result };
+        }
+        categoryResults[cat] = {
+          score: parsed.score || "",
+          interpretation: (parsed.interpretation || latest.result || "").toUpperCase(),
+        };
+      });
+
+      return {
+        name: student.name.toUpperCase(),
+        lastname: student.lastname.toUpperCase(),
+        grade: student.grade,
+        group: student.group,
+        ...categoryResults,
+      };
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error al obtener estudiantes por grado:", error);
+    res.status(500).json({ message: "Error interno del servidor", error: error.message });
+  }
+};
+
+module.exports = { createAnswer, getAnsweredTest, getTotalTest, getStudentsByGroupAndCategory, getStudentsByGrade };
