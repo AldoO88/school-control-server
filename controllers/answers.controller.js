@@ -256,12 +256,6 @@ const getStudentsByGrade = async (req, res) => {
       createdAt: { $gte: startOfYear, $lte: endOfYear },
     }).select("_id name lastname grade group createdAt");
 
-    const sortedStudents = students.sort((a, b) => {
-      const groupCmp = a.group.localeCompare(b.group);
-      if (groupCmp !== 0) return groupCmp;
-      return a.lastname.trim().toLowerCase().localeCompare(b.lastname.trim().toLowerCase());
-    });
-
     const studentIds = students.map(student => student._id);
 
     const answers = await Answer.find({
@@ -274,9 +268,37 @@ const getStudentsByGrade = async (req, res) => {
       "ofimatica-1RO", "ofimatica-2DO", "ofimatica-3RO",
     ];
 
-    const result = sortedStudents.map(student => {
+    // Agrupar estudiantes duplicados por nombre + apellido + grado + grupo
+    const mergedMap = new Map();
+
+    students.forEach(student => {
+      const key = `${student.name.trim().toLowerCase()}|${student.lastname.trim().toLowerCase()}|${student.grade}|${student.group}`;
+      if (!mergedMap.has(key)) {
+        mergedMap.set(key, {
+          name: student.name.trim().toUpperCase(),
+          lastname: student.lastname.trim().toUpperCase(),
+          grade: student.grade,
+          group: student.group,
+          ids: [student._id.toString()],
+        });
+      } else {
+        mergedMap.get(key).ids.push(student._id.toString());
+      }
+    });
+
+    const mergedStudents = Array.from(mergedMap.values());
+
+    // Ordenar por grupo y apellido
+    mergedStudents.sort((a, b) => {
+      const groupCmp = a.group.localeCompare(b.group);
+      if (groupCmp !== 0) return groupCmp;
+      return a.lastname.localeCompare(b.lastname);
+    });
+
+    const result = mergedStudents.map(student => {
+      // Recoger respuestas de TODOS los IDs duplicados de este estudiante
       const studentAnswers = answers.filter(
-        ans => ans.userId.toString() === student._id.toString()
+        ans => student.ids.includes(ans.userId.toString())
       );
 
       const categoryResults = {};
@@ -302,8 +324,8 @@ const getStudentsByGrade = async (req, res) => {
       });
 
       return {
-        name: student.name.toUpperCase(),
-        lastname: student.lastname.toUpperCase(),
+        name: student.name,
+        lastname: student.lastname,
         grade: student.grade,
         group: student.group,
         ...categoryResults,
